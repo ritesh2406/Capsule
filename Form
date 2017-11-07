@@ -1,0 +1,50 @@
+<?php 
+
+error_reporting(E_ERROR);
+$con=mysqli_connect("localhost","root","");
+mysqli_select_db($con,"registration");
+
+
+if($_POST){
+   $category_id=$_POST['category'];
+   $product =$_POST['productname'];
+   $description=$_POST['description'];
+   $price=$_POST['price'];
+   $color=$_POST['color'];
+   $sizes=$_POST['sizes'];
+   //$product_img=$_POST['img'];
+    if(!empty($_FILES)){
+        $img_name = $_FILES['img']['name'];
+        move_uploaded_file($_FILES['img']['tmp_name'],"upload/".$_FILES['img']['name']);
+            }
+   $stock=$_POST['stock'];
+    
+    
+   // print_r($_POST);
+   
+       $insert="insert into project1(cat_id,product_name,description,price,color,sizes,prod_image,stock) values('$category_id', '$product','$description','$price','$color','$sizes','$img_name','$stock')";
+    
+    
+    //print_r($_FILES);
+    //exit();
+   mysqli_query($con,$insert);
+    
+}
+?>
+
+<form method="post" action="" enctype="multipart/form-data">
+Select Category:<select name="category">
+    <?php
+    $i="Jeans";
+         echo "<option value ='1'>".$i."</option>";
+     ?>
+    </select><br><br>
+Product Name: <input type="text" name="productname"><br><br>
+Description: <textarea name="description" rows="5" cols="50"></textarea><br><br>
+Price: <input type="number" name="price"><br><br>
+Color: <input type="text" name="color">(Example: red,blue,green)<br><br>
+Sizes: <input type="text" name="sizes">(Example:S,M,L,XL,XXL)<br><br>
+<strong>Product Image:</strong><input type="file" name="img"><br><br>
+Stock Quantity:<input type="number" name="stock"><br><br>
+<input type="submit" name="Add Product" value="Add Product">
+</form>
