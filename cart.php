@@ -1,3 +1,10 @@
+<?php 
+session_start();
+include("db_connec.php");
+/*print"<pre>";
+print_r($_POST);
+print"</pre>";*/
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,7 +12,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="">
     <meta name="author" content="">
-    <title>Login | E-Shopper</title>
+    <title>Cart | E-Shopper</title>
     <link href="css/bootstrap.min.css" rel="stylesheet">
     <link href="css/font-awesome.min.css" rel="stylesheet">
     <link href="css/prettyPhoto.css" rel="stylesheet">
@@ -22,6 +29,27 @@
     <link rel="apple-touch-icon-precomposed" sizes="114x114" href="images/ico/apple-touch-icon-114-precomposed.png">
     <link rel="apple-touch-icon-precomposed" sizes="72x72" href="images/ico/apple-touch-icon-72-precomposed.png">
     <link rel="apple-touch-icon-precomposed" href="images/ico/apple-touch-icon-57-precomposed.png">
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.4/angular.min.js"></script>
+    <script>
+        
+         function delete_prod_records(id){
+             
+             
+             var pid = id;
+             
+             //alert(pid);
+            
+             var message = confirm("Do you want to delete the records???");
+         
+                 if(message == true){
+                     
+               
+                     window.location ="del_cat.php?id="+pid;
+                 }
+         }
+        
+        </script>
+    
 </head><!--/head-->
 
 <body>
@@ -89,8 +117,8 @@
 								<li><a href=""><i class="fa fa-user"></i> Account</a></li>
 								<li><a href=""><i class="fa fa-star"></i> Wishlist</a></li>
 								<li><a href="checkout.html"><i class="fa fa-crosshairs"></i> Checkout</a></li>
-								<li><a href="cart.html"><i class="fa fa-shopping-cart"></i> Cart</a></li>
-								<li><a href="login.html" class="active"><i class="fa fa-lock"></i> Login</a></li>
+								<li><a href="cart.html" class="active"><i class="fa fa-shopping-cart"></i> Cart</a></li>
+								<li><a href="login.html"><i class="fa fa-lock"></i> Login</a></li>
 							</ul>
 						</div>
 					</div>
@@ -118,8 +146,8 @@
                                         <li><a href="shop.html">Products</a></li>
 										<li><a href="product-details.html">Product Details</a></li> 
 										<li><a href="checkout.html">Checkout</a></li> 
-										<li><a href="cart.html">Cart</a></li> 
-										<li><a href="login.html" class="active">Login</a></li> 
+										<li><a href="cart.html" class="active">Cart</a></li> 
+										<li><a href="login.html">Login</a></li> 
                                     </ul>
                                 </li> 
 								<li class="dropdown"><a href="#">Blog<i class="fa fa-angle-down"></i></a>
@@ -142,44 +170,229 @@
 			</div>
 		</div>--><!--/header-bottom-->
 	<!--</header>--><!--/header-->
-	 <?php include("header.php");?>
-	<section id="form"><!--form-->
+    <?php include("header.php");?>
+    
+    <?php
+   
+if($_POST){
+	 
+		 
+	//print_r($_POST);
+	
+    $select="select * from cart where productid='".$_POST['id']."' AND session_id='".session_id()."'";
+		$query=mysqli_query($con,$select);
+		$rows=mysqli_fetch_array($query);
+      
+		//print_r($rows);
+		if($rows>1){
+           //echo "<script> alert('This product already exits in the cart') </script>";
+            $qty=$_POST['qty'];
+            
+            //echo $qty;
+            
+            //UPDATE `cart` SET `qty` = '2' WHERE `cart`.`cart_id` = 10;
+            
+            $tq = $qty + $rows['qty'];
+		    $upd ="UPDATE `cart` SET `qty`='".$tq."' WHERE  `cart_id`='".$rows['cart_id']."'";
+		   
+		  // $upd.="WHERE `cart`.`cart_id` = '".$_POST['id']."'";
+          mysqli_query($con,$upd);
+        }
+        
+    else{
+     $insert="insert into cart(qty,productid,session_id,price,size,color)values('".$_POST['qty']."','".$_POST['id']."','".session_id()."','".$_POST['price']."','".$_POST['size']."','".$_POST['color']."')";
+	
+	mysqli_query($con,$insert);
+            //echo $insert;
+            //exit();
+    }
+    }
+    ?>
+    <?php if(isset($_REQUEST['id'])) {?>
+                            
+                            <?php //echo "Records deleted successfully";
+                            ?>
+                            <?php } ?>
+	<section id="cart_items">
 		<div class="container">
+			<div class="breadcrumbs">
+				<ol class="breadcrumb">
+				  <li><a href="#">Home</a></li>
+				  <li class="active">Shopping Cart</li>
+				</ol>
+			</div>
+			<div class="table-responsive cart_info">
+				<table class="table table-bordered">
+					<thead>
+						<tr class="cart_menu">
+							<td class="image">Item</td>
+							<td class="description">Product Name</td>
+							<td class="price">Price</td>
+                            <td class="quantity">Quantity</td>
+                            <td class="size">Size</td>
+                            <td class="color">Color</td>
+                            <td>DELETE PRODUCT</td>
+							<td class="total">Sub Total</td>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+                            <?php
+                              $select="SELECT * from cart where session_id='".session_id()."'";
+		  $query=mysqli_query($con,$select);
+                            $grand_total=0;
+		 while( $fetch=mysqli_fetch_array($query)){
+             $slc="select * from prod_tbl where `productid`='".$fetch['productid']."'";
+             $qey=mysqli_query($con,$slc);
+             $ps=mysqli_fetch_array($qey);
+             
+             $subtotal=$fetch['qty']*$ps['prod_price'];
+             $grand_total=$grand_total+$subtotal;
+             //echo "<pre>";
+             
+             //print_r($fetch);
+             
+             //print_r($_POST);
+             
+             //exit();
+                            ?>
+							<td >
+								<img src="upload/<?php echo $ps['prod_image'] ?>" width="100" height="50">
+							</td>
+							<td class="cart_description">
+								<h4><a href=""><?php echo $ps['prod_name'];?></a></h4>
+								<!--<p><?php //echo $fetch['qty'] ?></p>-->
+							</td>
+							<td class="cart_price">
+								<?php echo $ps['prod_price']; ?>
+							</td>
+							<td class="cart_quantity">
+								<div class="cart_quantity_button">
+									<a class="cart_quantity_up" href=""> + </a>
+									<input class="cart_quantity_input" type="text" name="quantity" value="<?php echo $fetch['qty'] ?>" autocomplete="off" size="1">
+									<a class="cart_quantity_down" href=""> - </a>
+								</div>
+							</td>
+                            <td class="cart_size">
+								<p class="cart_total_price"><?php echo $fetch['size'];?></p>
+							</td>
+                            <td class="cart_color">
+								<p class="cart_total_price"><?php echo $fetch['color'];?></p>
+							</td>
+							<td>
+								<a href="#" onclick="delete_prod_records(<?php echo $fetch['cart_id'];?>)"><i class="fa fa-times"></i></a>
+							</td>
+                            <td>
+                                <p class="cart_total_price"><?php echo ($subtotal); ?></p>
+                            </td>
+						</tr>
+                        <?php } ?>
+						<tr>
+							<td>
+								
+							</td>
+							<td class="cart_description">
+								
+							</td>
+							<td class="cart_price">
+								
+							</td>
+							<td class="cart_quantity">
+								
+							</td>
+							<td class="cart_total">
+								
+							</td>
+							<td class="cart_total">
+								<a class="cart_total_price">Grand Total</a>
+							</td>
+                            <td class="cart_total"><p class="cart_total_price"><?php echo($grand_total);?></p></td>
+                            <td></td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</section> <!--/#cart_items-->
+                      <?php  $_SESSION['grand_total']=$grand_total; ?>
+
+	<section id="do_action">
+		<div class="container">
+			<div class="heading">
+				<h3>What would you like to do next?</h3>
+				<p>Choose if you have a discount code or reward points you want to use or would like to estimate your delivery cost.</p>
+			</div>
 			<div class="row">
-				<div class="col-sm-4 col-sm-offset-1">
-					<div class="login-form"><!--login form-->
-						<h2>Login to your account</h2>
-						<form action="login_action.php" method="post">
-							<input type="email" placeholder="Email Address" name="email"/>
-                            <input type="password" placeholder="Password" name="password"/>
-							<span>
-								<input type="checkbox" class="checkbox"> 
-								Keep me signed in
-							</span>
-							<input type="submit" class="btn btn-default" name="submit" value="submit">
-						</form>
-					</div><!--/login form-->
+				<div class="col-sm-6">
+					<div class="chose_area">
+						<ul class="user_option">
+							<li>
+								<input type="checkbox">
+								<label>Use Coupon Code</label>
+							</li>
+							<li>
+								<input type="checkbox">
+								<label>Use Gift Voucher</label>
+							</li>
+							<li>
+								<input type="checkbox">
+								<label>Estimate Shipping & Taxes</label>
+							</li>
+						</ul>
+						<ul class="user_info">
+							<li class="single_field">
+								<label>Country:</label>
+								<select>
+									<option>United States</option>
+									<option>Bangladesh</option>
+									<option>UK</option>
+									<option>India</option>
+									<option>Pakistan</option>
+									<option>Ucrane</option>
+									<option>Canada</option>
+									<option>Dubai</option>
+								</select>
+								
+							</li>
+							<li class="single_field">
+								<label>Region / State:</label>
+								<select>
+									<option>Select</option>
+									<option>Dhaka</option>
+									<option>London</option>
+									<option>Dillih</option>
+									<option>Lahore</option>
+									<option>Alaska</option>
+									<option>Canada</option>
+									<option>Dubai</option>
+								</select>
+							
+							</li>
+							<li class="single_field zip-field">
+								<label>Zip Code:</label>
+								<input type="text">
+							</li>
+						</ul>
+						<a class="btn btn-default update" href="">Get Quotes</a>
+						<a class="btn btn-default check_out" href="">Continue</a>
+					</div>
 				</div>
-				<div class="col-sm-1">
-					<h2 class="or">OR</h2>
-				</div>
-				<div class="col-sm-4">
-					<div class="signup-form"><!--sign up form-->
-						<h2>New User Signup!</h2>
-						<form action="signup_action.php" method="post">
-							<input type="text" placeholder="Name" name="username"/>
-							<input type="email" placeholder="Email Address" name="email"/>
-							<input type="password" placeholder="Password" name="password"/>
-                            <input type="password" placeholder="Confirm Password"name="cpassword"/>
-							<input type="submit" class="btn btn-default" name="submit" value="submit">
-						</form>
-					</div><!--/sign up form-->
+				<div class="col-sm-6">
+					<div class="total_area">
+						<ul>
+							
+							<li>Eco Tax <span>$2</span></li>
+							<li>Shipping Cost <span>Free</span></li>
+							<li>Total <span><?php echo($grand_total);?></span></li>
+						</ul>
+							<a class="btn btn-default update" href="">Update</a>
+							<a class="btn btn-default check_out" href="checkout_upd.php">Check Out</a>
+					</div>
 				</div>
 			</div>
 		</div>
-	</section><!--/form-->
-	
-	
+	</section><!--/#do_action-->
+
 	<!--<footer id="footer">--><!--Footer-->
 		<!--<div class="footer-top">
 			<div class="container">
@@ -339,11 +552,10 @@
 	</footer>--><!--/Footer-->
 	
     <?php include("footer.php"); ?>
-  
+
     <script src="js/jquery.js"></script>
-	<script src="js/price-range.js"></script>
-    <script src="js/jquery.scrollUp.min.js"></script>
 	<script src="js/bootstrap.min.js"></script>
+	<script src="js/jquery.scrollUp.min.js"></script>
     <script src="js/jquery.prettyPhoto.js"></script>
     <script src="js/main.js"></script>
 </body>
